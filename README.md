@@ -65,18 +65,32 @@ Additionally:
 
 ### libcxx
 * Name: `clang / LLVM Standard C++ Library (libc++) / c++11 support`
+* Set `CMAKE_C{XX}_COMPILER` to `clang`
 * Add `CMAKE_CXX_FLAGS`: `-std=c++11`, `-stdlib=libc++`
 
 ### clang_libstdcxx
 * Name: `clang / GNU Standard C++ Library (libstdc++) / c++11 support`
+* Set `CMAKE_C{XX}_COMPILER` to `clang`
 * Add `CMAKE_CXX_FLAGS`: `-std=c++11`, `-stdlib=libstdc++`
+
+### clang32_libstdcxx
+* Same as `clang_libstdcxx`, but with `clang 3.2`. (See [usage](https://github.com/travis-ci-tester/travis-test-clang-cxx-11))
 
 ### custom_libcxx
 * Name: `clang / Custom LLVM Standard C++ Library (libc++) / c++11 support`
+* Set `CMAKE_C{XX}_COMPILER` to `clang`
 * Add `CMAKE_CXX_FLAGS`: `-std=c++11`, `-stdlib=libc++`, `-nostdinc++`
 * Add `CMAKE_EXE_LINKER_FLAGS`: `-nodefaultlibs`, `-lSystem`
 * Set variable [CUSTOM_LIBCXX_LIBRARY_LOCATION](https://github.com/ruslo/polly/wiki/Used-variables#custom_libcxx_library_location) to `TRUE`
 * See [wiki](https://github.com/ruslo/polly/wiki/Building-libcxx) for more info
+
+### gcc
+* Name: `gcc / c++11 support`
+* Set `CMAKE_C{XX}_COMPILER` to `gcc`
+* Add `CMAKE_CXX_FLAGS`: `-std=c++11`
+ 
+### gcc48
+* Same as `gcc`, but with `gcc 4.8`. (See [usage](https://github.com/travis-ci-tester/travis-test-gcc-cxx-11))
 
 ### ios
 * Name: `iOS Universal (iphoneos + iphonesimulator)`
