@@ -3,13 +3,13 @@ language:
 
 env:
     # default gcc version don't support c++11
-    - EXAMPLE=00-simple TOOLCHAIN=clang32_libstdcxx
+    - EXAMPLE=00-simple TOOLCHAIN=clang_libstdcxx
     - EXAMPLE=01-executable TOOLCHAIN=default
     - EXAMPLE=01-executable TOOLCHAIN=gcc48
-    - EXAMPLE=01-executable TOOLCHAIN=clang32_libstdcxx
+    - EXAMPLE=01-executable TOOLCHAIN=clang_libstdcxx
     - EXAMPLE=02-library TOOLCHAIN=default
     - EXAMPLE=02-library TOOLCHAIN=gcc48
-    - EXAMPLE=02-library TOOLCHAIN=clang32_libstdcxx
+    - EXAMPLE=02-library TOOLCHAIN=clang_libstdcxx
 
 before_install:
     - export POLLY_ROOT=`pwd`
