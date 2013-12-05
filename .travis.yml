@@ -15,14 +15,11 @@ before_install:
     - export POLLY_ROOT=`pwd`
 
 install:
-    # install clang 3.2 and gcc 4.8
-    #   * github.com/travis-ci-tester/travis-test-clang-3.2
+    # install gcc 4.8 and libstdc++
     #   * github.com/travis-ci-tester/travis-test-gcc-cxx-11
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test --yes
-    - sudo add-apt-repository --yes ppa:h-rayflood/llvm
     - sudo apt-get update
     - sudo apt-get install g++-4.8
-    - sudo apt-get install clang-3.2
     # -- end
     # install cmake 2.8.8
     #     * github.com/travis-ci-tester/travis-test-cmake
