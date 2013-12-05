@@ -1,50 +1,35 @@
 language:
-    - objective-c
+    - cpp
 
 env:
-    - EXAMPLE=00-simple TOOLCHAIN=libcxx
-    - EXAMPLE=00-simple TOOLCHAIN=clang_libstdcxx
+    # default gcc version don't support c++11
+    - EXAMPLE=00-simple TOOLCHAIN=clang32_libstdcxx
     - EXAMPLE=01-executable TOOLCHAIN=default
-    - EXAMPLE=01-executable TOOLCHAIN=libcxx
-    - EXAMPLE=01-executable TOOLCHAIN=clang_libstdcxx
-    - EXAMPLE=01-executable TOOLCHAIN=custom_libcxx
+    - EXAMPLE=01-executable TOOLCHAIN=gcc48
+    - EXAMPLE=01-executable TOOLCHAIN=clang32_libstdcxx
     - EXAMPLE=02-library TOOLCHAIN=default
-    - EXAMPLE=02-library TOOLCHAIN=libcxx
-    - EXAMPLE=02-library TOOLCHAIN=clang_libstdcxx
-    - EXAMPLE=02-library TOOLCHAIN=custom_libcxx
-    - EXAMPLE=02-library GENERATOR=-GXcode TOOLCHAIN=ios
-
-compiler:
-    - clang
+    - EXAMPLE=02-library TOOLCHAIN=gcc48
+    - EXAMPLE=02-library TOOLCHAIN=clang32_libstdcxx
 
 before_install:
-    - brew update
     - export POLLY_ROOT=`pwd`
 
 install:
-    - brew install cmake
-    - brew install wget
-    - brew install python3
-    # install custom libcxx --
-    - mkdir custom_libcxx_lib
-    - cd custom_libcxx_lib
-    - export LIBCXX_ROOT=`pwd`/Install
-    - git clone http://llvm.org/git/libcxx .
-    # release
-    - mkdir -p _builds/make-release
-    - cd _builds/make-release
-    - cmake -DCMAKE_INSTALL_PREFIX=${LIBCXX_ROOT} -DLIBCXX_ENABLE_SHARED=OFF -DCMAKE_BUILD_TYPE=Release -DLIBCXX_ENABLE_ASSERTIONS=OFF ../..
-    - make VERBOSE=1 install
-    - cd ../..
-    # debug
-    - mkdir -p _builds/make-debug
-    - cd _builds/make-debug
-    - cmake -DCMAKE_INSTALL_PREFIX=${LIBCXX_ROOT} -DLIBCXX_ENABLE_SHARED=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_DEBUG_POSTFIX=d ../..
-    - make VERBOSE=1 install
-    - cd ../..
-    # test
-    - cd ..
-    - ls -la ${LIBCXX_ROOT}/lib/*
+    # install clang 3.2 and gcc 4.8
+    #   * github.com/travis-ci-tester/travis-test-clang-3.2
+    #   * github.com/travis-ci-tester/travis-test-gcc-cxx-11
+    - sudo add-apt-repository ppa:ubuntu-toolchain-r/test --yes
+    - sudo add-apt-repository --yes ppa:h-rayflood/llvm
+    - sudo apt-get update
+    - sudo apt-get install g++-4.8
+    - sudo apt-get install clang-3.2
+    # -- end
+    # install cmake 2.8.8
+    #     * github.com/travis-ci-tester/travis-test-cmake
+    - "wget https://launchpad.net/ubuntu/+source/cmake/2.8.8-2ubuntu1/+build/3441442/+files/cmake_2.8.8-2ubuntu1_amd64.deb"
+    - "wget https://launchpad.net/ubuntu/+archive/primary/+files/cmake-data_2.8.8-2ubuntu1_all.deb"
+    - "sudo apt-get remove cmake-data cmake"
+    - "sudo dpkg --install cmake-data_2.8.8-2ubuntu1_all.deb cmake_2.8.8-2ubuntu1_amd64.deb"
     # -- end
     # download sugar for 02-library example
     - wget https://github.com/ruslo/sugar/archive/v1.0.0.tar.gz
@@ -57,7 +42,7 @@ script:
     # release
     - mkdir -p _builds/make-release
     - cd _builds/make-release
-    - cmake ${GENERATOR} -DCMAKE_TOOLCHAIN_FILE=${POLLY_ROOT}/${TOOLCHAIN}.cmake -DCMAKE_BUILD_TYPE=Release ../..
+    - cmake -DCMAKE_TOOLCHAIN_FILE=${POLLY_ROOT}/${TOOLCHAIN}.cmake -DCMAKE_BUILD_TYPE=Release ../..
     - cmake --build .
     - ctest -V .
     - cmake --build . --target install
@@ -65,7 +50,7 @@ script:
     # debug
     - mkdir -p _builds/make-debug
     - cd _builds/make-debug
-    - cmake ${GENERATOR} -DCMAKE_TOOLCHAIN_FILE=${POLLY_ROOT}/${TOOLCHAIN}.cmake -DCMAKE_BUILD_TYPE=Debug ../..
+    - cmake -DCMAKE_TOOLCHAIN_FILE=${POLLY_ROOT}/${TOOLCHAIN}.cmake -DCMAKE_BUILD_TYPE=Debug ../..
     - cmake --build .
     - ctest -V .
     - cmake --build . --target install
