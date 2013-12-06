@@ -10,6 +10,9 @@ env:
     - EXAMPLE=02-library TOOLCHAIN=default
     - EXAMPLE=02-library TOOLCHAIN=gcc48
     - EXAMPLE=02-library TOOLCHAIN=clang_libstdcxx
+    - EXAMPLE=03-shared-link TOOLCHAIN=default
+    - EXAMPLE=03-shared-link TOOLCHAIN=gcc48
+    - EXAMPLE=03-shared-link TOOLCHAIN=clang_libstdcxx
 
 before_install:
     - export POLLY_ROOT=`pwd`
