@@ -9,7 +9,10 @@ endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/utilities/polly_clear_environment_variables.cmake")
 
-set(POLLY_TOOLCHAIN_NAME "iOS Universal (iphoneos + iphonesimulator)")
+set(
+    POLLY_TOOLCHAIN_NAME
+    "iOS Universal (iphoneos + iphonesimulator) / c++11 support"
+)
 set(POLLY_TOOLCHAIN_TAG "ios")
 
 include("${CMAKE_CURRENT_LIST_DIR}/utilities/polly_common.cmake")
@@ -21,12 +24,12 @@ if(NOT XCODE_VERSION)
 endif()
 
 set(CMAKE_OSX_SYSROOT "iphoneos" CACHE STRING "System root for iOS" FORCE)
+set(CMAKE_XCODE_EFFECTIVE_PLATFORMS "-iphoneos;-iphonesimulator")
 
-# Skip compiler check:
-#     http://cmake.org/Bug/view.php?id=12288
-#     http://code.google.com/p/ios-cmake/issues/detail?id=1
-set(CMAKE_CXX_COMPILER_WORKS TRUE CACHE BOOL "Skip compiler check" FORCE)
-set(CMAKE_C_COMPILER_WORKS TRUE CACHE BOOL "Skip compiler check" FORCE)
+# Fix try_compile
+set(MACOSX_BUNDLE_GUI_IDENTIFIER com.example)
+set(CMAKE_MACOSX_BUNDLE YES)
+set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer")
 
 # find 'iphoneos' and 'iphonesimulator' roots and version
 find_program(XCODE_SELECT_EXECUTABLE xcode-select)
@@ -126,3 +129,5 @@ endif()
 
 # support for hunter (github.com/ruslo/hunter)
 set(HUNTER_CMAKE_GENERATOR Xcode)
+
+include("${CMAKE_CURRENT_LIST_DIR}/flags/cxx11.cmake")
