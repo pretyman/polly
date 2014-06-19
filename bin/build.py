@@ -26,20 +26,30 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    '--type',
-    required=True,
-    help="CMake build type",
+    '--config',
+    help="CMake build type (Release, Debug, ...)",
 )
 
-parser.add_argument('--test', action='store_true')
-parser.add_argument('--open', action='store_true')
-parser.add_argument('--verbose', action='store_true')
+parser.add_argument('--test', action='store_true', help="Run ctest after build")
+parser.add_argument(
+    '--nobuild', action='store_true', help="Do not build (only generate)"
+)
+parser.add_argument(
+    '--open', action='store_true', help="Open generated project (for IDE)"
+)
+parser.add_argument('--verbose', action='store_true', help="Verbose output")
+parser.add_argument('--install', action='store_true', help="Run install")
 
 args = parser.parse_args()
 
 toolchain = ''
 generator = ''
-tag = "{}-{}".format(args.toolchain, args.type)
+
+if args.config:
+  tag = "{}-{}".format(args.toolchain, args.config)
+else:
+  tag = args.toolchain
+
 if args.toolchain == 'libcxx':
   toolchain = 'libcxx'
 elif args.toolchain == 'xcode':
@@ -63,17 +73,26 @@ else:
 
 cdir = os.getcwd()
 
-def call(args):
+def call(call_args):
   try:
     print('Execute command: [')
-    for i in args:
+    for i in call_args:
       print('  `{}`'.format(i))
     print(']')
-    subprocess.check_call(
-        args,
-        stderr=subprocess.STDOUT,
-        universal_newlines=True
-    )
+    if not args.verbose:
+      subprocess.check_call(
+          call_args,
+          stdout=subprocess.DEVNULL,
+          stderr=subprocess.DEVNULL,
+          universal_newlines=True
+      )
+    else:
+      output = subprocess.check_output(
+          call_args,
+          stderr=subprocess.STDOUT,
+          universal_newlines=True
+      )
+      print(output)
   except subprocess.CalledProcessError as error:
     print(error)
     print(error.output)
@@ -96,16 +115,17 @@ if toolchain:
 build_dir = os.path.join(cdir, '_builds', tag)
 build_dir_option = "-B{}".format(build_dir)
 
-build_type_for_generate_step = "-DCMAKE_BUILD_TYPE={}".format(args.type)
 
 shutil.rmtree(build_dir, ignore_errors=True)
 
 generate_command = [
     'cmake',
     '-H.',
-    build_dir_option,
-    build_type_for_generate_step
+    build_dir_option
 ]
+
+if args.config:
+  generate_command.append("-DCMAKE_BUILD_TYPE={}".format(args.config))
 
 if generator:
   generate_command.append(generator)
@@ -116,16 +136,31 @@ if toolchain_option:
 if args.verbose:
   generate_command.append('-DCMAKE_VERBOSE_MAKEFILE=ON')
 
+if args.install:
+  generate_command.append(
+      '-DCMAKE_INSTALL_PREFIX={}'.format(
+          os.path.join(cdir, '_install', args.toolchain)
+      )
+  )
+
+call(generate_command)
+
 build_command = [
     'cmake',
     '--build',
-    build_dir,
-    '--config',
-    args.type
+    build_dir
 ]
 
-call(generate_command)
-call(build_command)
+if args.config:
+  build_command.append('--config')
+  build_command.append(args.config)
+
+if args.install:
+  build_command.append('--target')
+  build_command.append('install')
+
+if not args.nobuild:
+  call(build_command)
 
 if (toolchain == 'xcode') and args.open:
   for file in os.listdir(build_dir):
@@ -134,7 +169,10 @@ if (toolchain == 'xcode') and args.open:
 
 if args.test:
   os.chdir(build_dir)
-  test_command = ['ctest', '--config', args.type]
+  test_command = ['ctest']
+  if args.config:
+    test_command.append('--config')
+    test_command.append(args.config)
 
   if args.verbose:
     test_command.append('-VV')
