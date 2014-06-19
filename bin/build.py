@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser(description="Script for building")
 parser.add_argument(
     '--toolchain',
     choices=[
+        'default',
         'libcxx',
         'xcode',
         'clang_libstdcxx',
@@ -39,8 +40,17 @@ parser.add_argument(
 )
 parser.add_argument('--verbose', action='store_true', help="Verbose output")
 parser.add_argument('--install', action='store_true', help="Run install")
+parser.add_argument(
+    '--fwd',
+    nargs='*',
+    help="Arguments to cmake without '-', like:\nDBOOST_ROOT=/some/path"
+)
 
 args = parser.parse_args()
+
+for x in args.fwd:
+  if not x.startswith('D'):
+    sys.exit("Expected that forward argument starts with `D`: {}".format(x))
 
 toolchain = ''
 generator = ''
@@ -58,6 +68,8 @@ elif args.toolchain == 'xcode':
   tag = 'xcode'
 elif args.toolchain == 'clang_libstdcxx':
   toolchain = 'clang_libstdcxx'
+elif args.toolchain == 'default':
+  toolchain = 'default'
 elif args.toolchain == 'gcc48':
   toolchain = 'gcc48'
 elif args.toolchain == 'gcc':
@@ -87,12 +99,10 @@ def call(call_args):
           universal_newlines=True
       )
     else:
-      output = subprocess.check_output(
+      subprocess.check_call(
           call_args,
-          stderr=subprocess.STDOUT,
           universal_newlines=True
       )
-      print(output)
   except subprocess.CalledProcessError as error:
     print(error)
     print(error.output)
@@ -142,6 +152,9 @@ if args.install:
           os.path.join(cdir, '_install', args.toolchain)
       )
   )
+
+for x in args.fwd:
+  generate_command.append("-{}".format(x))
 
 call(generate_command)
 
