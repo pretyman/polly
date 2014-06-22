@@ -31,6 +31,8 @@ parser.add_argument(
         'sanitize_memory',
         'sanitize_thread',
         'cygwin',
+        'ios',
+        'ios-nocodesign',
     ],
     help="CMake generator/toolchain",
 )
@@ -56,6 +58,11 @@ parser.add_argument(
     '--fwd',
     nargs='*',
     help="Arguments to cmake without '-D', like:\nBOOST_ROOT=/some/path"
+)
+parser.add_argument(
+    '--iossim',
+    action='store_true',
+    help="Build for ios i386 simulator"
 )
 
 args = parser.parse_args()
@@ -94,6 +101,10 @@ if args.toolchain == 'vs2013x64':
 elif args.toolchain == 'vs2013':
   generator = '-GVisual Studio 12 2013'
 elif args.toolchain == 'xcode':
+  generator = '-GXcode'
+elif args.toolchain == 'ios':
+  generator = '-GXcode'
+elif args.toolchain == 'ios-nocodesign':
   generator = '-GXcode'
 
 cdir = os.getcwd()
@@ -191,15 +202,23 @@ if args.install:
   build_command.append('--target')
   build_command.append('install')
 
+# NOTE: This must be the last `build_command` modification!
+if args.iossim:
+  build_command.append('--')
+  build_command.append('-arch')
+  build_command.append('i386')
+  build_command.append('-sdk')
+  build_command.append('iphonesimulator')
+
 if not args.nobuild:
   call(build_command)
 
 if args.open:
-  if (args.toolchain == 'xcode'):
+  if (generator == '-GXcode'):
     for file in os.listdir(build_dir):
       if file.endswith(".xcodeproj"):
         call(['open', os.path.join(build_dir, file)])
-  if (args.toolchain == 'vs2013x64') or (args.toolchain == 'vs2013'):
+  if generator.startswith('-GVisual Studio'):
     for file in os.listdir(build_dir):
       if file.endswith(".sln"):
         os.startfile(os.path.join(build_dir, file))
