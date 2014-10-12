@@ -1,19 +1,20 @@
-# Copyright (c) 2013-2014, Ruslan Baratov
+# Copyright (c) 2014, Ruslan Baratov
 # All rights reserved.
 
-if(DEFINED POLLY_IOS_CMAKE)
+if(DEFINED POLLY_IOS_7_1_CMAKE_)
   return()
 else()
-  set(POLLY_IOS_CMAKE 1)
+  set(POLLY_IOS_7_1_CMAKE_ 1)
 endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/utilities/polly_clear_environment_variables.cmake")
 
-set(
-    POLLY_TOOLCHAIN_NAME
-    "iOS Universal (iphoneos + iphonesimulator) / c++11 support"
+include("${CMAKE_CURRENT_LIST_DIR}/utilities/polly_init.cmake")
+
+polly_init(
+    "iOS 7.1 Universal (iphoneos + iphonesimulator) / c++11 support"
+    "Xcode"
 )
-set(POLLY_TOOLCHAIN_TAG "ios")
 
 include("${CMAKE_CURRENT_LIST_DIR}/utilities/polly_common.cmake")
 
@@ -26,9 +27,7 @@ set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer")
 
 set(IPHONEOS_ARCHS armv7;armv7s;arm64)
 set(IPHONESIMULATOR_ARCHS i386;x86_64)
-
-# support for hunter (github.com/ruslo/hunter)
-set(HUNTER_CMAKE_GENERATOR Xcode)
+set(IOS_SDK_VERSION 7.1)
 
 include("${CMAKE_CURRENT_LIST_DIR}/os/iphone.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/flags/cxx11.cmake")

@@ -7,19 +7,14 @@ else()
   set(POLLY_XCODE_CMAKE_ 1)
 endif()
 
-set(
-    POLLY_TOOLCHAIN_NAME
+include("${CMAKE_CURRENT_LIST_DIR}/utilities/polly_init.cmake")
+
+polly_init(
     "Xcode / LLVM Standard C++ Library (libc++) / c++11 support"
+    "Xcode"
 )
-set(POLLY_TOOLCHAIN_TAG "xcode")
 
 include("${CMAKE_CURRENT_LIST_DIR}/utilities/polly_common.cmake")
-
-if(NOT XCODE_VERSION)
-  polly_fatal_error("This toolchain is available only for Xcode")
-endif()
-
-set(HUNTER_CMAKE_GENERATOR Xcode)
 
 execute_process(
     COMMAND

@@ -2,20 +2,51 @@ language:
     - cpp
 
 env:
-    # default gcc version don't support c++11
-    - EXAMPLE=00-simple TOOLCHAIN=clang_libstdcxx
-    - EXAMPLE=01-executable TOOLCHAIN=default
-    - EXAMPLE=01-executable TOOLCHAIN=gcc48
-    - EXAMPLE=01-executable TOOLCHAIN=clang_libstdcxx
-    - EXAMPLE=02-library TOOLCHAIN=default
-    - EXAMPLE=02-library TOOLCHAIN=gcc48
-    - EXAMPLE=02-library TOOLCHAIN=clang_libstdcxx
-    - EXAMPLE=03-shared-link TOOLCHAIN=default
-    - EXAMPLE=03-shared-link TOOLCHAIN=gcc48
-    - EXAMPLE=03-shared-link TOOLCHAIN=clang_libstdcxx
-
-before_install:
-    - export POLLY_ROOT=`pwd`
+    # 01
+    - EXAMPLE=01-executable TOOLCHAIN=default CONFIG=Debug
+    - EXAMPLE=01-executable TOOLCHAIN=default CONFIG=Release
+    - EXAMPLE=01-executable TOOLCHAIN=clang-libstdcxx CONFIG=Debug
+    - EXAMPLE=01-executable TOOLCHAIN=clang-libstdcxx CONFIG=Release
+    - EXAMPLE=01-executable TOOLCHAIN=gcc48 CONFIG=Debug
+    - EXAMPLE=01-executable TOOLCHAIN=gcc48 CONFIG=Release
+    - EXAMPLE=01-executable TOOLCHAIN=analyze CONFIG=Debug
+    - EXAMPLE=01-executable TOOLCHAIN=analyze CONFIG=Release
+    - EXAMPLE=01-executable TOOLCHAIN=sanitize-address CONFIG=Debug
+    - EXAMPLE=01-executable TOOLCHAIN=sanitize-address CONFIG=Release
+    - EXAMPLE=01-executable TOOLCHAIN=sanitize-leak CONFIG=Debug
+    - EXAMPLE=01-executable TOOLCHAIN=sanitize-leak CONFIG=Release
+    - EXAMPLE=01-executable TOOLCHAIN=sanitize-thread CONFIG=Debug
+    - EXAMPLE=01-executable TOOLCHAIN=sanitize-thread CONFIG=Release
+    # 02
+    - EXAMPLE=02-library TOOLCHAIN=default CONFIG=Debug
+    - EXAMPLE=02-library TOOLCHAIN=default CONFIG=Release
+    - EXAMPLE=02-library TOOLCHAIN=clang-libstdcxx CONFIG=Debug
+    - EXAMPLE=02-library TOOLCHAIN=clang-libstdcxx CONFIG=Release
+    - EXAMPLE=02-library TOOLCHAIN=gcc48 CONFIG=Debug
+    - EXAMPLE=02-library TOOLCHAIN=gcc48 CONFIG=Release
+    - EXAMPLE=02-library TOOLCHAIN=analyze CONFIG=Debug
+    - EXAMPLE=02-library TOOLCHAIN=analyze CONFIG=Release
+    - EXAMPLE=02-library TOOLCHAIN=sanitize-address CONFIG=Debug
+    - EXAMPLE=02-library TOOLCHAIN=sanitize-address CONFIG=Release
+    - EXAMPLE=02-library TOOLCHAIN=sanitize-leak CONFIG=Debug
+    - EXAMPLE=02-library TOOLCHAIN=sanitize-leak CONFIG=Release
+    - EXAMPLE=02-library TOOLCHAIN=sanitize-thread CONFIG=Debug
+    - EXAMPLE=02-library TOOLCHAIN=sanitize-thread CONFIG=Release
+    # 03
+    - EXAMPLE=03-shared-link TOOLCHAIN=default CONFIG=Debug
+    - EXAMPLE=03-shared-link TOOLCHAIN=default CONFIG=Release
+    - EXAMPLE=03-shared-link TOOLCHAIN=clang-libstdcxx CONFIG=Debug
+    - EXAMPLE=03-shared-link TOOLCHAIN=clang-libstdcxx CONFIG=Release
+    - EXAMPLE=03-shared-link TOOLCHAIN=gcc48 CONFIG=Debug
+    - EXAMPLE=03-shared-link TOOLCHAIN=gcc48 CONFIG=Release
+    - EXAMPLE=03-shared-link TOOLCHAIN=analyze CONFIG=Debug
+    - EXAMPLE=03-shared-link TOOLCHAIN=analyze CONFIG=Release
+    - EXAMPLE=03-shared-link TOOLCHAIN=sanitize-address CONFIG=Debug
+    - EXAMPLE=03-shared-link TOOLCHAIN=sanitize-address CONFIG=Release
+    - EXAMPLE=03-shared-link TOOLCHAIN=sanitize-leak CONFIG=Debug
+    - EXAMPLE=03-shared-link TOOLCHAIN=sanitize-leak CONFIG=Release
+    - EXAMPLE=03-shared-link TOOLCHAIN=sanitize-thread CONFIG=Debug
+    - EXAMPLE=03-shared-link TOOLCHAIN=sanitize-thread CONFIG=Release
 
 install:
     # install gcc 4.8 and libstdc++
@@ -24,34 +55,20 @@ install:
     - sudo apt-get update
     - sudo apt-get install g++-4.8
     # -- end
-    # install cmake 2.8.8
-    #     * github.com/travis-ci-tester/travis-test-cmake
-    - "wget https://launchpad.net/ubuntu/+source/cmake/2.8.8-2ubuntu1/+build/3441442/+files/cmake_2.8.8-2ubuntu1_amd64.deb"
-    - "wget https://launchpad.net/ubuntu/+archive/primary/+files/cmake-data_2.8.8-2ubuntu1_all.deb"
-    - "sudo apt-get remove cmake-data cmake"
-    - "sudo dpkg --install cmake-data_2.8.8-2ubuntu1_all.deb cmake_2.8.8-2ubuntu1_amd64.deb"
-    # -- end
-    # download sugar for 02-library example
-    - wget https://github.com/ruslo/sugar/archive/v1.0.0.tar.gz
-    - tar xf *.tar.gz
-    - export SUGAR_ROOT=`pwd`/sugar-1.0.0
+    - sudo apt-get install cmake
+    - sudo apt-get install libcurl3-dev
+    # install cmake
+    - CMAKE_VERSION="3.0.2-ios-universal"
+    - wget "https://github.com/ruslo/CMake/archive/v${CMAKE_VERSION}.tar.gz"
+    - openssl sha1 "v${CMAKE_VERSION}.tar.gz"
+    - tar xf "v${CMAKE_VERSION}.tar.gz"
+    - cd "CMake-${CMAKE_VERSION}"
+    -   cmake -H. -B_builds -DCMAKE_INSTALL_PREFIX="`pwd`/_install/" -DCMAKE_BUILD_TYPE=Release -DCMAKE_USE_SYSTEM_CURL=YES
+    -   cmake --build _builds --target install
+    -   export PATH="`pwd`/_install/bin:${PATH}"
+    - cd ..
     # -- end
 
 script:
-    - cd ${POLLY_ROOT}/examples/${EXAMPLE}
-    # release
-    - mkdir -p _builds/make-release
-    - cd _builds/make-release
-    - cmake -DCMAKE_TOOLCHAIN_FILE=${POLLY_ROOT}/${TOOLCHAIN}.cmake -DCMAKE_BUILD_TYPE=Release ../..
-    - cmake --build .
-    - ctest -V .
-    - cmake --build . --target install
-    - cd ../..
-    # debug
-    - mkdir -p _builds/make-debug
-    - cd _builds/make-debug
-    - cmake -DCMAKE_TOOLCHAIN_FILE=${POLLY_ROOT}/${TOOLCHAIN}.cmake -DCMAKE_BUILD_TYPE=Debug ../..
-    - cmake --build .
-    - ctest -V .
-    - cmake --build . --target install
-    - cd ../..
+    - which cmake
+    - python3 ./examples/jenkins.py

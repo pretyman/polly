@@ -7,11 +7,12 @@ else()
   set(POLLY_CUSTOM_LIBCXX_CMAKE 1)
 endif()
 
-set(
-    POLLY_TOOLCHAIN_NAME
+include("${CMAKE_CURRENT_LIST_DIR}/utilities/polly_init.cmake")
+
+polly_init(
     "clang / Custom LLVM Standard C++ Library (libc++) / c++11 support"
+    "Unix Makefiles"
 )
-set(POLLY_TOOLCHAIN_TAG "custom_libcxx")
 
 include("${CMAKE_CURRENT_LIST_DIR}/utilities/polly_common.cmake")
 

@@ -7,11 +7,12 @@ else()
   set(POLLY_SANITIZE_THREAD_CMAKE_ 1)
 endif()
 
-set(
-    POLLY_TOOLCHAIN_NAME
+include("${CMAKE_CURRENT_LIST_DIR}/utilities/polly_init.cmake")
+
+polly_init(
     "Clang thread sanitizer / c++11 support"
+    "Unix Makefiles"
 )
-set(POLLY_TOOLCHAIN_TAG "sanitize_thread")
 
 include("${CMAKE_CURRENT_LIST_DIR}/utilities/polly_common.cmake")
 

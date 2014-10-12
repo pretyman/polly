@@ -7,11 +7,12 @@ else()
   set(POLLY_GCC48_CMAKE 1)
 endif()
 
-set(
-    POLLY_TOOLCHAIN_NAME
+include("${CMAKE_CURRENT_LIST_DIR}/utilities/polly_init.cmake")
+
+polly_init(
     "gcc 4.8 / c++11 support"
+    "Unix Makefiles"
 )
-set(POLLY_TOOLCHAIN_TAG "gcc48")
 
 include("${CMAKE_CURRENT_LIST_DIR}/utilities/polly_common.cmake")
 
