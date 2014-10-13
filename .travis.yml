@@ -1,5 +1,8 @@
 language:
-    - cpp
+    - python
+
+python:
+    - "3.3"
 
 env:
     # 01
@@ -7,8 +10,8 @@ env:
     - EXAMPLE=01-executable TOOLCHAIN=default CONFIG=Release
     - EXAMPLE=01-executable TOOLCHAIN=clang-libstdcxx CONFIG=Debug
     - EXAMPLE=01-executable TOOLCHAIN=clang-libstdcxx CONFIG=Release
-    - EXAMPLE=01-executable TOOLCHAIN=gcc48 CONFIG=Debug
-    - EXAMPLE=01-executable TOOLCHAIN=gcc48 CONFIG=Release
+    - EXAMPLE=01-executable TOOLCHAIN=gcc-4-8 CONFIG=Debug
+    - EXAMPLE=01-executable TOOLCHAIN=gcc-4-8 CONFIG=Release
     - EXAMPLE=01-executable TOOLCHAIN=analyze CONFIG=Debug
     - EXAMPLE=01-executable TOOLCHAIN=analyze CONFIG=Release
     - EXAMPLE=01-executable TOOLCHAIN=sanitize-address CONFIG=Debug
@@ -22,8 +25,8 @@ env:
     - EXAMPLE=02-library TOOLCHAIN=default CONFIG=Release
     - EXAMPLE=02-library TOOLCHAIN=clang-libstdcxx CONFIG=Debug
     - EXAMPLE=02-library TOOLCHAIN=clang-libstdcxx CONFIG=Release
-    - EXAMPLE=02-library TOOLCHAIN=gcc48 CONFIG=Debug
-    - EXAMPLE=02-library TOOLCHAIN=gcc48 CONFIG=Release
+    - EXAMPLE=02-library TOOLCHAIN=gcc-4-8 CONFIG=Debug
+    - EXAMPLE=02-library TOOLCHAIN=gcc-4-8 CONFIG=Release
     - EXAMPLE=02-library TOOLCHAIN=analyze CONFIG=Debug
     - EXAMPLE=02-library TOOLCHAIN=analyze CONFIG=Release
     - EXAMPLE=02-library TOOLCHAIN=sanitize-address CONFIG=Debug
@@ -37,8 +40,8 @@ env:
     - EXAMPLE=03-shared-link TOOLCHAIN=default CONFIG=Release
     - EXAMPLE=03-shared-link TOOLCHAIN=clang-libstdcxx CONFIG=Debug
     - EXAMPLE=03-shared-link TOOLCHAIN=clang-libstdcxx CONFIG=Release
-    - EXAMPLE=03-shared-link TOOLCHAIN=gcc48 CONFIG=Debug
-    - EXAMPLE=03-shared-link TOOLCHAIN=gcc48 CONFIG=Release
+    - EXAMPLE=03-shared-link TOOLCHAIN=gcc-4-8 CONFIG=Debug
+    - EXAMPLE=03-shared-link TOOLCHAIN=gcc-4-8 CONFIG=Release
     - EXAMPLE=03-shared-link TOOLCHAIN=analyze CONFIG=Debug
     - EXAMPLE=03-shared-link TOOLCHAIN=analyze CONFIG=Release
     - EXAMPLE=03-shared-link TOOLCHAIN=sanitize-address CONFIG=Debug
