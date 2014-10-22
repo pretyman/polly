@@ -62,7 +62,9 @@ parser.add_argument(
     '--open', action='store_true', help="Open generated project (for IDE)"
 )
 parser.add_argument('--verbose', action='store_true', help="Verbose output")
-parser.add_argument('--install', action='store_true', help="Run install")
+parser.add_argument(
+    '--install', action='store_true', help="Run install (local directory)"
+)
 parser.add_argument(
     '--clear',
     action='store_true',
@@ -85,9 +87,8 @@ polly_toolchain = detail.toolchain_name.get(args.toolchain)
 toolchain_entry = detail.toolchain_table.get_by_name(polly_toolchain)
 cpack_generator = detail.cpack_generator.get(args.pack)
 
-polly_root = os.getenv("POLLY_ROOT")
-if not polly_root:
-  sys.exit("Environment variable `POLLY_ROOT` is empty")
+polly_root = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
+polly_root = os.path.realpath(polly_root)
 
 """Build directory tag"""
 if args.config and not toolchain_entry.multiconfig:
@@ -102,8 +103,8 @@ if toolchain_entry.name == 'mingw':
   os.environ['PATH'] = "{};{}".format(mingw_path, os.getenv('PATH'))
 
 if toolchain_entry.is_nmake:
-  os.environ = get_nmake_environment(
-      polly_toolchain.arch, polly_toolchain.vs_version
+  os.environ = detail.get_nmake_environment.get(
+      toolchain_entry.arch, toolchain_entry.vs_version
   )
 
 if toolchain_entry.ios_version:
