@@ -5,7 +5,15 @@ import os
 import platform
 
 class Toolchain:
-  def __init__(self, name, generator, arch='', vs_version='', ios_version=''):
+  def __init__(
+      self,
+      name,
+      generator,
+      arch='',
+      vs_version='',
+      ios_version='',
+      xp=False
+  ):
     self.name = name
     self.generator = generator
     self.arch = arch
@@ -13,6 +21,7 @@ class Toolchain:
     self.ios_version = ios_version
     self.is_nmake = (self.generator == 'NMake Makefiles')
     self.is_msvc = self.generator.startswith('Visual Studio')
+    self.xp = xp
     self.is_xcode = (self.generator == 'Xcode')
     self.multiconfig = (self.is_xcode or self.is_msvc)
     self.verify()
@@ -28,11 +37,15 @@ class Toolchain:
     if self.ios_version:
       assert(self.generator == 'Xcode')
 
+    if self.xp:
+      assert(self.vs_version)
+
 toolchain_table = [Toolchain('default', '')]
 
 if os.name == 'nt':
   toolchain_table += [
       Toolchain('mingw', 'MinGW Makefiles'),
+      Toolchain('msys', 'MSYS Makefiles'),
       Toolchain(
           'nmake-vs-12-2013',
           'NMake Makefiles',
@@ -47,6 +60,16 @@ if os.name == 'nt':
       ),
       Toolchain(
           'vs-12-2013', 'Visual Studio 12 2013', arch='x86', vs_version='12'
+      ),
+      Toolchain(
+          'vs-8-2005', 'Visual Studio 8 2005', arch='x86', vs_version='8'
+      ),
+      Toolchain(
+          'vs-12-2013-xp',
+          'Visual Studio 12 2013',
+          arch='x86',
+          vs_version='12',
+          xp=True
       ),
       Toolchain(
           'vs-12-2013-win64',
@@ -70,6 +93,8 @@ if platform.system() == 'Linux':
 
 if platform.system() == 'Darwin':
   toolchain_table += [
+      Toolchain('ios-8-2', 'Xcode', ios_version='8.2'),
+      Toolchain('ios-8-1', 'Xcode', ios_version='8.1'),
       Toolchain('ios-8-0', 'Xcode', ios_version='8.0'),
       Toolchain('ios-7-1', 'Xcode', ios_version='7.1'),
       Toolchain('ios-7-0', 'Xcode', ios_version='7.0'),
@@ -83,6 +108,7 @@ if os.name == 'posix':
       Toolchain('clang-lto', 'Unix Makefiles'),
       Toolchain('clang-libstdcxx', 'Unix Makefiles'),
       Toolchain('gcc', 'Unix Makefiles'),
+      Toolchain('gcc-pic', 'Unix Makefiles'),
       Toolchain('gcc-4-8', 'Unix Makefiles'),
       Toolchain('libcxx', 'Unix Makefiles'),
       Toolchain('sanitize-address', 'Unix Makefiles'),

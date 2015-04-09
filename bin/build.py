@@ -19,6 +19,7 @@ import detail.test_command
 import detail.toolchain_name
 import detail.toolchain_table
 import detail.verify_mingw_path
+import detail.verify_msys_path
 
 toolchain_table = detail.toolchain_table.toolchain_table
 
@@ -102,6 +103,11 @@ if toolchain_entry.name == 'mingw':
   detail.verify_mingw_path.verify(mingw_path)
   os.environ['PATH'] = "{};{}".format(mingw_path, os.getenv('PATH'))
 
+if toolchain_entry.name == 'msys':
+  msys_path = os.getenv("MSYS_PATH")
+  detail.verify_msys_path.verify(msys_path)
+  os.environ['PATH'] = "{};{}".format(msys_path, os.getenv('PATH'))
+
 if toolchain_entry.is_nmake:
   os.environ = detail.get_nmake_environment.get(
       toolchain_entry.arch, toolchain_entry.vs_version
@@ -145,10 +151,16 @@ if args.install:
   install_dir_option = "-DCMAKE_INSTALL_PREFIX={}".format(install_dir)
 
 if args.clear:
-  print("Remove build directory: {}".format(build_dir))
-  shutil.rmtree(build_dir, ignore_errors=True)
-  print("Remove install directory: {}".format(install_dir))
-  shutil.rmtree(install_dir, ignore_errors=True)
+  if os.path.exists(build_dir):
+    print("Remove build directory: {}".format(build_dir))
+    shutil.rmtree(build_dir)
+  if os.path.exists(install_dir):
+    print("Remove install directory: {}".format(install_dir))
+    shutil.rmtree(install_dir)
+  if os.path.exists(build_dir):
+    sys.exit("Directory removing failed ({})".format(build_dir))
+  if os.path.exists(install_dir):
+    sys.exit("Directory removing failed ({})".format(install_dir))
 
 home = '.'
 if args.home:
@@ -165,6 +177,10 @@ if args.config and not toolchain_entry.multiconfig:
 
 if toolchain_entry.generator:
   generate_command.append('-G{}'.format(toolchain_entry.generator))
+
+if toolchain_entry.xp:
+  toolset = 'v{}0_xp'.format(toolchain_entry.vs_version)
+  generate_command.append('-T{}'.format(toolset))
 
 if toolchain_option:
   generate_command.append(toolchain_option)
