@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2014, Ruslan Baratov
+# Copyright (c) 2014-2015, Ruslan Baratov
 # All rights reserved.
 
 import argparse
@@ -13,7 +13,9 @@ import detail.cpack_generator
 import detail.generate_command
 import detail.get_nmake_environment
 import detail.ios_dev_root
+import detail.logging
 import detail.open_project
+import detail.osx_dev_root
 import detail.pack_command
 import detail.test_command
 import detail.toolchain_name
@@ -82,6 +84,12 @@ parser.add_argument(
     help="Build for ios i386 simulator"
 )
 
+parser.add_argument(
+    '--jobs',
+    type=int,
+    help="Number of concurrent build operations"
+)
+
 args = parser.parse_args()
 
 polly_toolchain = detail.toolchain_name.get(args.toolchain)
@@ -116,25 +124,21 @@ if toolchain_entry.is_nmake:
 if toolchain_entry.ios_version:
   ios_dev_root = detail.ios_dev_root.get(toolchain_entry.ios_version)
   if ios_dev_root:
-    if args.verbose:
-      print("Set environment DEVELOPER_DIR to {}".format(ios_dev_root))
+    print("Set environment DEVELOPER_DIR to {}".format(ios_dev_root))
     os.environ['DEVELOPER_DIR'] = ios_dev_root
 
 if toolchain_entry.name == 'ios-nocodesign':
   xcconfig = os.path.join(polly_root, 'scripts', 'NoCodeSign.xcconfig')
-  if args.verbose:
-    print("Set environment XCODE_XCCONFIG_FILE to {}".format(xcconfig))
+  print("Set environment XCODE_XCCONFIG_FILE to {}".format(xcconfig))
   os.environ['XCODE_XCCONFIG_FILE'] = xcconfig
 
-cdir = os.getcwd()
+if toolchain_entry.osx_version:
+  osx_dev_root = detail.osx_dev_root.get(toolchain_entry.osx_version)
+  if osx_dev_root:
+    print("Set environment DEVELOPER_DIR to {}".format(osx_dev_root))
+    os.environ['DEVELOPER_DIR'] = osx_dev_root
 
-if args.verbose:
-  if os.name == 'nt':
-    # Windows
-    detail.call.call(['where', 'cmake'], args.verbose)
-  else:
-    detail.call.call(['which', 'cmake'], args.verbose)
-  detail.call.call(['cmake', '--version'], args.verbose)
+cdir = os.getcwd()
 
 toolchain_path = os.path.join(polly_root, "{}.cmake".format(polly_toolchain))
 if not os.path.exists(toolchain_path):
@@ -142,8 +146,7 @@ if not os.path.exists(toolchain_path):
 toolchain_option = "-DCMAKE_TOOLCHAIN_FILE={}".format(toolchain_path)
 
 build_dir = os.path.join(cdir, '_builds', build_tag)
-if args.verbose:
-  print("Build dir: {}".format(build_dir))
+print("Build dir: {}".format(build_dir))
 build_dir_option = "-B{}".format(build_dir)
 
 install_dir = os.path.join(cdir, '_install', polly_toolchain)
@@ -162,6 +165,18 @@ if args.clear:
   if os.path.exists(install_dir):
     sys.exit("Directory removing failed ({})".format(install_dir))
 
+polly_temp_dir = os.path.join(build_dir, '_3rdParty', 'polly')
+if not os.path.exists(polly_temp_dir):
+  os.makedirs(polly_temp_dir)
+logging = detail.logging.Logging(polly_temp_dir, args.verbose)
+
+if os.name == 'nt':
+  # Windows
+  detail.call.call(['where', 'cmake'], logging)
+else:
+  detail.call.call(['which', 'cmake'], logging)
+detail.call.call(['cmake', '--version'], logging)
+
 home = '.'
 if args.home:
   home = args.home
@@ -171,6 +186,9 @@ generate_command = [
     '-H{}'.format(home),
     build_dir_option
 ]
+
+if toolchain_entry.vs_version and args.jobs:
+  generate_command.append("-DPOLLY_PARALLEL=YES")
 
 if args.config and not toolchain_entry.multiconfig:
   generate_command.append("-DCMAKE_BUILD_TYPE={}".format(args.config))
@@ -185,10 +203,9 @@ if toolchain_entry.xp:
 if toolchain_option:
   generate_command.append(toolchain_option)
 
-if args.verbose:
-  generate_command.append('-DCMAKE_VERBOSE_MAKEFILE=ON')
-  generate_command.append('-DPOLLY_STATUS_DEBUG=ON')
-  generate_command.append('-DHUNTER_STATUS_DEBUG=ON')
+generate_command.append('-DCMAKE_VERBOSE_MAKEFILE=ON')
+generate_command.append('-DPOLLY_STATUS_DEBUG=ON')
+generate_command.append('-DHUNTER_STATUS_DEBUG=ON')
 
 if args.install:
   generate_command.append(install_dir_option)
@@ -200,7 +217,9 @@ if args.fwd != None:
   for x in args.fwd:
     generate_command.append("-D{}".format(x))
 
-detail.generate_command.run(generate_command, build_dir, args.verbose)
+detail.generate_command.run(
+    generate_command, build_dir, polly_temp_dir, logging
+)
 
 build_command = [
     'cmake',
@@ -217,22 +236,34 @@ if args.install:
   build_command.append('install')
 
 # NOTE: This must be the last `build_command` modification!
+build_command.append('--')
+
 if args.iossim:
-  build_command.append('--')
   build_command.append('-arch')
   build_command.append('i386')
   build_command.append('-sdk')
   build_command.append('iphonesimulator')
 
+if args.jobs:
+  if toolchain_entry.is_xcode:
+    build_command.append('-jobs')
+    build_command.append('{}'.format(args.jobs))
+  elif toolchain_entry.is_make and not toolchain_entry.is_nmake:
+    build_command.append('-j')
+    build_command.append('{}'.format(args.jobs))
+
 if not args.nobuild:
-  detail.call.call(build_command, args.verbose)
+  detail.call.call(build_command, logging)
 
 if not args.nobuild:
   os.chdir(build_dir)
   if args.test:
-    detail.test_command.run(build_dir, args.config, args.verbose)
+    detail.test_command.run(build_dir, args.config, logging)
   if args.pack:
-    detail.pack_command.run(args.config, args.verbose, cpack_generator)
+    detail.pack_command.run(args.config, logging, cpack_generator)
 
 if args.open:
-  detail.open_project.open(toolchain_entry, build_dir, args.verbose)
+  detail.open_project.open(toolchain_entry, build_dir, logging)
+
+print('Log saved: {}'.format(logging.log_path))
+print('SUCCESS')

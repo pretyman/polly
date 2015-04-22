@@ -20,7 +20,10 @@ if(XCODE_VERSION VERSION_LESS "5.0.0")
   polly_fatal_error("Works since Xcode 5.0.0 (current ver: ${XCODE_VERSION})")
 endif()
 
-polly_status_debug("Developer root (env): $ENV{DEVELOPER_DIR}")
+string(COMPARE EQUAL "$ENV{DEVELOPER_DIR}" "" _is_empty)
+if(NOT _is_empty)
+  polly_status_debug("Developer root (env): $ENV{DEVELOPER_DIR}")
+endif()
 
 execute_process(
     COMMAND
@@ -102,3 +105,23 @@ if(NOT EXISTS ${IPHONEOS_SDK_ROOT})
       "IOS_SDK_VERSION: ${IOS_SDK_VERSION}\n"
   )
 endif()
+
+# Emulate OpenCV toolchain --
+set(IOS YES)
+# -- end
+
+# Set iPhoneOS architectures
+set(archs "")
+foreach(arch ${IPHONEOS_ARCHS})
+  set(archs "${archs} ${arch}")
+endforeach()
+set(CMAKE_XCODE_ATTRIBUTE_ARCHS[sdk=iphoneos*] "${archs}")
+set(CMAKE_XCODE_ATTRIBUTE_VALID_ARCHS[sdk=iphoneos*] "${archs}")
+
+# Set iPhoneSimulator architectures
+set(archs "")
+foreach(arch ${IPHONESIMULATOR_ARCHS})
+  set(archs "${archs} ${arch}")
+endforeach()
+set(CMAKE_XCODE_ATTRIBUTE_ARCHS[sdk=iphonesimulator*] "${archs}")
+set(CMAKE_XCODE_ATTRIBUTE_VALID_ARCHS[sdk=iphonesimulator*] "${archs}")

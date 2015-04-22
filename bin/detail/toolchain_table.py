@@ -12,6 +12,7 @@ class Toolchain:
       arch='',
       vs_version='',
       ios_version='',
+      osx_version='',
       xp=False
   ):
     self.name = name
@@ -19,8 +20,10 @@ class Toolchain:
     self.arch = arch
     self.vs_version = vs_version
     self.ios_version = ios_version
+    self.osx_version = osx_version
     self.is_nmake = (self.generator == 'NMake Makefiles')
     self.is_msvc = self.generator.startswith('Visual Studio')
+    self.is_make = self.generator.endswith('Makefiles')
     self.xp = xp
     self.is_xcode = (self.generator == 'Xcode')
     self.multiconfig = (self.is_xcode or self.is_msvc)
@@ -34,7 +37,7 @@ class Toolchain:
     if self.is_nmake or self.is_msvc:
       assert(self.vs_version)
 
-    if self.ios_version:
+    if self.ios_version or self.osx_version:
       assert(self.generator == 'Xcode')
 
     if self.xp:
@@ -94,12 +97,19 @@ if platform.system() == 'Linux':
 if platform.system() == 'Darwin':
   toolchain_table += [
       Toolchain('ios-8-2', 'Xcode', ios_version='8.2'),
+      Toolchain('ios-8-2-i386-arm64', 'Xcode', ios_version='8.2'),
+      Toolchain('ios-8-2-cxx98', 'Xcode', ios_version='8.2'),
       Toolchain('ios-8-1', 'Xcode', ios_version='8.1'),
       Toolchain('ios-8-0', 'Xcode', ios_version='8.0'),
       Toolchain('ios-7-1', 'Xcode', ios_version='7.1'),
       Toolchain('ios-7-0', 'Xcode', ios_version='7.0'),
       Toolchain('ios-nocodesign', 'Xcode', ios_version='7.1'),
       Toolchain('xcode', 'Xcode'),
+      Toolchain('osx-10-7', 'Xcode', osx_version='10.7'),
+      Toolchain('osx-10-8', 'Xcode', osx_version='10.8'),
+      Toolchain('osx-10-9', 'Xcode', osx_version='10.9'),
+      Toolchain('osx-10-10', 'Xcode', osx_version='10.10'),
+      Toolchain('osx-10-10-dep-10-7', 'Xcode', osx_version='10.10'),
   ]
 
 if os.name == 'posix':
